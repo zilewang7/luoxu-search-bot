@@ -159,7 +159,12 @@ const handleSearch = async (
 
     // 过滤查询和 bot 自身的消息
     messages = messages.filter(message => {
-        if (message.html.startsWith('/s ') || message.html.startsWith('/search ')) {
+        if (
+            message.html.startsWith('/s ') 
+            || message.html.startsWith('/search ')
+            || message.html.startsWith('/s@')
+            || message.html.startsWith('/search@')
+        ) {
             return false
         };
 
