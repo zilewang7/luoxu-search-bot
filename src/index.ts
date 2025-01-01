@@ -157,10 +157,12 @@ const handleSearch = async (
 
     let { messages, has_more } = result;
 
+    const lastMessage = messages[messages.length - 1];
+
     // 过滤查询和 bot 自身的消息
     messages = messages.filter(message => {
         if (
-            message.html.startsWith('/s ') 
+            message.html.startsWith('/s ')
             || message.html.startsWith('/search ')
             || message.html.startsWith('/s@')
             || message.html.startsWith('/search@')
@@ -209,58 +211,51 @@ const handleSearch = async (
         replyText += `>[${transV2(from_name)} ${dateStr}${edited ? '✏' : ''}](https://t.me/c/${groupId}/${id})\n`;
 
         // 处理文本
-        const processedText = html.replace(/<span class="keyword">|<\/span>/g, '@@')  // 先替换标签为特殊标记
-            .split('@@')  // 分割文本
-            .reduce((acc, curr, i) => {
-                if (i % 2 === 0) {  // 非关键词部分
-                    return [...acc, { text: curr, isKeyword: false }];
-                }
-                return [...acc, { text: curr, isKeyword: true }];  // 关键词部分
-            }, [] as { text: string, isKeyword: boolean }[]);
+        let text = html;
+        // 使用零宽断言来分割文本，保留标签
+        const segments = text.split(/(?=<span class="keyword">)|(?<=<\/span>)/);
 
         let result = '';
-        let lastWasEllipsis = false;  // 跟踪上一个是否是省略号
+        if (segments.length === 1) {
+            result = segments[0];
+        } else {
+            segments.forEach((segment, index) => {
+                const isKeyword = /^<span class="keyword">|<\/span>$/.test(segment);
 
-        for (let i = 0; i < processedText.length; i++) {
-            const current = processedText[i];
-            if (current.isKeyword) {
-                const prev = processedText[i - 1]?.text || '';
-                const next = processedText[i + 1]?.text || '';
+                if (isKeyword) {
+                    result += segment; // 保留关键词
+                    return;
+                }
 
-                // 使用 Array.from 正确处理字符
-                const prevChars = Array.from(prev);
-                const nextChars = Array.from(next);
+                const chars = Array.from(segment);
 
-                const prevText = prevChars.slice(-5).join('');
-                const nextText = nextChars.slice(0, 5).join('');
-
-                if (i === 1) {  // 第一个关键词
-                    result += prevChars.length > 5 ? '...' + prevText : prev;
-                } else if (prevChars.length <= 5) {  // 如果间隔小于5个字符，直接连接
-                    result += prev;
-                    lastWasEllipsis = false;
-                } else {  // 间隔太长，使用省略号
-                    if (!lastWasEllipsis) {
-                        result += '...' + prevText;
+                if (index === 0) {
+                    // 第一段文本
+                    if (chars.length > 5) {
+                        result += '...' + chars.slice(-5).join('');
                     } else {
-                        result += prevText;
+                        result += chars.join('');
+                    }
+                } else if (index === segments.length - 1) {
+                    // 最后一段文本
+                    if (chars.length > 5) {
+                        result += chars.slice(0, 5).join('') + '...';
+                    } else {
+                        result += chars.join('');
+                    }
+                } else {
+                    // 中间的文本
+                    if (chars.length <= 10) {
+                        result += chars.join('');
+                    } else {
+                        result += chars.slice(0, 5).join('') + '...' + chars.slice(-5).join('');
                     }
                 }
-
-                result += current.text;  // 添加关键词
-
-                if (i === processedText.length - 2) {  // 最后一个关键词
-                    result += nextChars.length > 5 ? nextText + '...' : next;
-                } else if (nextChars.length <= 5) {  // 如果到下一个关键词的间隔小于5个字符，不添加省略号
-                    result += nextText;
-                    lastWasEllipsis = false;
-                } else {
-                    result += nextText + '...';
-                    lastWasEllipsis = true;
-                }
-            }
+            });
         }
 
+        // 去掉 HTML 标签
+        result = result.replace(/<span class="keyword">|<\/span>/g, '');
         // 将换行符替换为 ↵ 符号
         result = result.replace(/\n/g, '↵');
 
@@ -274,7 +269,6 @@ const handleSearch = async (
     replyText += "||";
 
     // 修改回复消息部分，添加内联键盘
-    const lastMessage = messages[messages.length - 1];
     const inlineKeyboard = has_more ? {
         reply_markup: {
             inline_keyboard: [[
