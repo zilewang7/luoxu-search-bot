@@ -33,6 +33,12 @@ pnpm i
 pnpm dev
 ```
 
+或使用 docker
+
+```bash
+docker compose up -d
+```
+
 即可启动
 
 

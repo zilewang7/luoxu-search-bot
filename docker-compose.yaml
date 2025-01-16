@@ -1,0 +1,11 @@
+services:
+  luoxu-search-bot:
+    restart: always
+    build:
+      context: .
+      args:
+        - GIT_REPO=https://github.com/zilewang7/luoxu-search-bot.git
+    environment:
+      - GIT_REPO=https://github.com/zilewang7/luoxu-search-bot.git
+    command: /app/luoxu-search-bot/build.sh
+    working_dir: /app/luoxu-search-bot
