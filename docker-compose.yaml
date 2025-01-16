@@ -9,3 +9,4 @@ services:
       - GIT_REPO=https://github.com/zilewang7/luoxu-search-bot.git
     command: /app/luoxu-search-bot/build.sh
     working_dir: /app/luoxu-search-bot
+    network_mode: host
