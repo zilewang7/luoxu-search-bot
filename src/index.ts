@@ -259,6 +259,12 @@ const handleSearch = async (
         // 将换行符替换为 ↵ 符号
         result = result.replace(/\n/g, '↵');
 
+        // 截断过长的结果
+        const resultChars = Array.from(result);
+        if (resultChars.length > 100) {
+            result = resultChars.slice(0, 100).join('') + '……';
+        }
+
         replyText += ('>' + transV2(result));
 
         if (index < messages.length - 1) {
