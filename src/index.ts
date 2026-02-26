@@ -199,6 +199,7 @@ const handleSearch = async (
 
     messages.forEach((message, index) => {
         const { id, from_name, html, t, edited } = message;
+        const isImage = html.startsWith('[image]\n');
         const date = edited ? new Date(edited * 1000) : new Date(t * 1000);
         const dateStr = date.toLocaleString('zh-Hans-CN', {
             year: '2-digit',
@@ -208,7 +209,7 @@ const handleSearch = async (
             minute: '2-digit',
         });
 
-        replyText += `>[${transV2(from_name)} ${dateStr}${edited ? '✏' : ''}](https://t.me/c/${groupId}/${id})\n`;
+        replyText += `>[${transV2(from_name)} ${dateStr}${isImage ? ' 🖼️' : ''}${edited ? ' ✏️' : ''}](https://t.me/c/${groupId}/${id})\n`;
 
         // 处理文本
         let text = html;
@@ -232,14 +233,14 @@ const handleSearch = async (
                 if (index === 0) {
                     // 第一段文本
                     if (chars.length > 5) {
-                        result += '...' + chars.slice(-5).join('');
+                        result += '…' + chars.slice(-5).join('');
                     } else {
                         result += chars.join('');
                     }
                 } else if (index === segments.length - 1) {
                     // 最后一段文本
                     if (chars.length > 5) {
-                        result += chars.slice(0, 5).join('') + '...';
+                        result += chars.slice(0, 5).join('') + '…';
                     } else {
                         result += chars.join('');
                     }
@@ -248,7 +249,7 @@ const handleSearch = async (
                     if (chars.length <= 10) {
                         result += chars.join('');
                     } else {
-                        result += chars.slice(0, 5).join('') + '...' + chars.slice(-5).join('');
+                        result += chars.slice(0, 5).join('') + '…' + chars.slice(-5).join('');
                     }
                 }
             });
