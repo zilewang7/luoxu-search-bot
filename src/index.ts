@@ -171,7 +171,7 @@ const handleSearch = async (
         };
 
         const botUserId = process.env.BOT_TOKEN.split(':')[0];
-        if (message.from_id.toString() === botUserId) {
+        if (message?.from_id?.toString() === botUserId) {
             return false;
         }
 
@@ -199,7 +199,7 @@ const handleSearch = async (
 
     messages.forEach((message, index) => {
         const { id, from_name, html, t, edited } = message;
-        const isImage = html.startsWith('[image]\n');
+        const isImage = html.includes('[image]');
         const date = edited ? new Date(edited * 1000) : new Date(t * 1000);
         const dateStr = date.toLocaleString('zh-Hans-CN', {
             year: '2-digit',
